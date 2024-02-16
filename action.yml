@@ -1,0 +1,122 @@
+name: 'Salesforce Deploy'
+description: |
+  Create a release and deployment for Octopus Deploy.
+  Assumes running in the salesforce/cli:latest-full container.
+inputs:
+  jwt_key:
+    description: 'Salesforce JWT Key'
+    required: true
+  username:
+    description: 'Salesforce Username'
+    required: true
+  client_id:
+    description: 'Salesforce Client ID'
+    required: true
+  instance_url:
+    description: 'Salesforce Instance URL'
+    default: 'https://login.salesforce.com'
+  duration_days:
+    description: 'Duration in days for the scratch org'
+    required: false
+    default: '7'
+  scratch_def:
+    description: 'Scratch org definition'
+    required: false
+    default: '{}'
+  api_version:
+    description: 'API Version'
+    required: false
+    default: '52.0'
+  packages:
+    description: '04t or aliased packages to install'
+    required: false
+    default: ''
+  preview:
+    description: 'Create a preview scratch org'
+    required: false
+    default: 'false'
+  org_name:
+    description: 'Name of the scratch org'
+    required: false
+    default: ''
+
+env:
+  SF_ORG_NAME: ${{ inputs.org_name || github.event_name == 'pull_request' && github.event.repository.name + '-pr-' + github.event.pull_request.number || github.event.repository.name + '-' + github.ref_name }}
+  SF_DESCRIPTION: |
+    Created by ${{ github.actor }} on ${{ github.event.repository.full_name }}
+    ${{ github.event_name == 'pull_request' && 'PR-' + github.event.pull_request.number + ': ' + github.event.pull_request.title || github.ref_name }}
+    Branch: ${{ github.ref }}
+    SHA: ${{ github.sha }}
+    ${{ inputs.packages }}
+
+runs:
+  using: "composite"
+  steps:
+  - name: Log in to Salesforce
+    shell: bash
+    run: |
+      sf version
+      if [ -f sfdx-project.json ]; then
+        echo "Found sfdx-project.json in current directory"
+      else
+        sfdx_dir=$(find . -maxdepth 1 -name sfdx-project.json -exec dirname {} \; | head -n 1)
+        echo "sfdx-project.json found in $sfdx_dir"
+        cd $sfdx_dir
+      fi
+      
+      echo "$SF_JWT_KEY" > sf.key
+      sf org login jwt --alias devhub --set-default-dev-hub --username "$SF_USERNAME" --client-id "$SF_CLIENT_ID" \
+        --jwt-key-file sf.key --instance-url "$SF_INSTANCE_URL"
+    env:
+      SF_JWT_KEY: ${{ inputs.jwt_key }}
+      SF_USERNAME: ${{ inputs.username }}
+      SF_CLIENT_ID: ${{ inputs.client_id }}
+      SF_INSTANCE_URL: ${{ inputs.instance_url }}
+
+  - name: Create a new scratch org
+    shell: bash
+    run: |
+      echo "$SF_ORG_DEF" > sf-scratch-def.json
+      
+      sf org create scratch \ 
+        --target-dev-hub=devhub \
+        --edition=developer \
+        --set-default --no-track-source \
+        --definition-file=sf-scratch-def.json \
+        --duration-days=$SF_DURATION \
+        --alias="$SF_ORG_NAME" \
+        --name="$SF_ORG_NAME" \
+        --description="$SF_DESCRIPTION" \
+        ${{ inputs.api_version && '--api-version=' + inputs.api_version || '' }} \
+        ${{ inputs.preview == 'true' && '--release=preview' || '' }}
+    env:
+      SF_ORG_DEF: ${{ inputs.scratch_def }}
+      SF_DURATION: ${{ inputs.duration_days }}
+
+  - name: Install packages
+    if: inputs.packages
+    shell: bash
+    run: |
+      echo "$SF_PACKAGES" | tr ' ' '\n' | while read pkg; do
+        echo "Installing package $pkg"
+        sf package install --wait=10 --publishwait=10 --package="$pkg" --target-org="$SF_ORG_NAME" --no-prompt \
+        ${{ inputs.api_version && '--api-version=' + inputs.api_version || '' }} \
+      done
+
+  - name: Get Org Info
+    shell: bash
+    run: |
+      ORG_URL=$(sf org open --url-only --target-org="$SF_ORG_NAME")
+      echo "url=$ORG_URL" >> $GITHUB_ENV
+
+  - name: Add Comment
+    if: github.event_name == 'pull_request'
+    uses: actions/github-script@v6
+    with:
+      script: |
+        github.rest.issues.createComment({
+          issue_number: context.issue.number,
+          owner: context.repo.owner,
+          repo: context.repo.repo,
+          body: '🟢 Scratch org created: [${{ env.url }}](${{ env.url }})'
+        })

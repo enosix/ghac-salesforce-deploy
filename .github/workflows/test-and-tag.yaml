@@ -1,0 +1,72 @@
+name: Test and Tag
+on:
+  workflow_dispatch:
+    inputs:
+      org_name:
+        description: 'Name of the scratch org'
+        required: true
+        default: 'ghac-salesforce-deploy'
+      preview:
+        description: 'Create a preview scratch org'
+        required: false
+        default: false
+        type: boolean
+      duration_days:
+        description: 'Duration in days for the scratch org'
+        required: false
+        default: 1
+        type: number
+      tag:
+        description: 'Tag Name'
+        default: 'none'
+        type: choice
+        options:
+          - 'none'
+          - 'dev'
+          - 'stable'
+
+permissions:
+  contents: write
+  packages: read
+
+env:
+  TEST_VERSION: 0.0.0.1-fake-test
+  OCTOPUS_PROJECT_ID: Projects-42
+
+jobs:
+  test-and-tag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test Action
+        uses: ./
+        with:
+          jwt_key: ${{ secrets.SF_JWT_KEY }}
+          username: ${{ secrets.SF_USERNAME }}
+          client_id: ${{ secrets.SF_CLIENT_ID }}
+          duration_days: ${{ github.event.inputs.duration_days }}
+          preview: ${{ github.event.inputs.preview && 'true' || 'false' }}
+          org_name: ${{ github.event.inputs.org_name }}
+
+      - name: Create tag
+        if: ${{ github.event.inputs.tag != 'none' }}
+        uses: actions/github-script@v7
+        with:
+          script: |
+            try {
+              await github.rest.git.updateRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: 'tags/${{ github.event.inputs.tag }}',
+                sha: context.sha,
+              })
+            } catch (err) {
+              console.log(err)
+            
+              await github.rest.git.createRef({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                ref: 'refs/tags/${{ github.event.inputs.tag }}',
+                sha: context.sha,
+              })
+            }
