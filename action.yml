@@ -40,14 +40,10 @@ inputs:
     required: false
     default: ''
 
-env:
-  SF_ORG_NAME: ${{ inputs.org_name || github.event_name == 'pull_request' && github.event.repository.name + '-pr-' + github.event.pull_request.number || github.event.repository.name + '-' + github.ref_name }}
-  SF_DESCRIPTION: |
-    Created by ${{ github.actor }} on ${{ github.event.repository.full_name }}
-    ${{ github.event_name == 'pull_request' && 'PR-' + github.event.pull_request.number + ': ' + github.event.pull_request.title || github.ref_name }}
-    Branch: ${{ github.ref }}
-    SHA: ${{ github.sha }}
-    ${{ inputs.packages }}
+outputs:
+  url:
+    description: "URL of the scratch org"
+    value: ${{ steps.create-scratch-org.outputs.url }}
 
 runs:
   using: "composite"
@@ -74,6 +70,7 @@ runs:
       SF_INSTANCE_URL: ${{ inputs.instance_url }}
 
   - name: Create a new scratch org
+    id: create-scratch-org
     shell: bash
     run: |
       echo "$SF_ORG_DEF" > sf-scratch-def.json
@@ -89,9 +86,19 @@ runs:
         --description="$SF_DESCRIPTION" \
         ${{ inputs.api_version && '--api-version=' + inputs.api_version || '' }} \
         ${{ inputs.preview == 'true' && '--release=preview' || '' }}
+      
+      ORG_URL=$(sf org open --url-only --target-org="$SF_ORG_NAME")
+      echo "url=$ORG_URL" >> $GITHUB_OUTPUT
     env:
       SF_ORG_DEF: ${{ inputs.scratch_def }}
       SF_DURATION: ${{ inputs.duration_days }}
+      SF_ORG_NAME: ${{ inputs.org_name || github.event_name == 'pull_request' && github.event.repository.name + '-pr-' + github.event.pull_request.number || github.event.repository.name + '-' + github.ref_name }}
+      SF_DESCRIPTION: |
+        Created by ${{ github.actor }} on ${{ github.event.repository.full_name }}
+        ${{ github.event_name == 'pull_request' && 'PR-' + github.event.pull_request.number + ': ' + github.event.pull_request.title || github.ref_name }}
+        Branch: ${{ github.ref }}
+        SHA: ${{ github.sha }}
+        ${{ inputs.packages }}
 
   - name: Install packages
     if: inputs.packages
@@ -102,12 +109,8 @@ runs:
         sf package install --wait=10 --publishwait=10 --package="$pkg" --target-org="$SF_ORG_NAME" --no-prompt \
         ${{ inputs.api_version && '--api-version=' + inputs.api_version || '' }} \
       done
-
-  - name: Get Org Info
-    shell: bash
-    run: |
-      ORG_URL=$(sf org open --url-only --target-org="$SF_ORG_NAME")
-      echo "url=$ORG_URL" >> $GITHUB_ENV
+    env:
+      SF_ORG_NAME: ${{ inputs.org_name || github.event_name == 'pull_request' && github.event.repository.name + '-pr-' + github.event.pull_request.number || github.event.repository.name + '-' + github.ref_name }}
 
   - name: Add Comment
     if: github.event_name == 'pull_request'
@@ -118,5 +121,5 @@ runs:
           issue_number: context.issue.number,
           owner: context.repo.owner,
           repo: context.repo.repo,
-          body: '🟢 Scratch org created: [${{ env.url }}](${{ env.url }})'
+          body: '🟢 Scratch org created: [${{ steps.create-scratch-org.outputs.url }}](${{ steps.create-scratch-org.outputs.url }})'
         })
