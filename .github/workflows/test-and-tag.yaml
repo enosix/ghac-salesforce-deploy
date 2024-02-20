@@ -46,7 +46,7 @@ jobs:
           username: ${{ secrets.SFDXSVCUSERNAME }}
           client_id: ${{ secrets.SFDXSVCCLIENTID }}
           duration_days: ${{ github.event.inputs.duration_days }}
-          preview: ${{ github.event.inputs.preview && 'true' || 'false' }}
+          preview: ${{ github.event.inputs.preview }}
           org_name: ${{ github.event.inputs.org_name }}
 
       - name: Create tag

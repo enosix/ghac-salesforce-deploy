@@ -24,8 +24,6 @@ inputs:
     required: false
     default: |
       {
-        "orgName": "enosix-test",
-        "edition": "Developer",
         "features": ["LightningSalesConsole", "LightningServiceConsole"],
         "settings": { }
       }
