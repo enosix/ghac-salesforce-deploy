@@ -75,7 +75,7 @@ runs:
     run: |
       echo "$SF_ORG_DEF" > sf-scratch-def.json
       
-      sf org create scratch \ 
+      sf org create scratch \
         --target-dev-hub=devhub \
         --edition=developer \
         --set-default --no-track-source \
