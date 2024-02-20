@@ -36,6 +36,7 @@ env:
 jobs:
   test-and-tag:
     runs-on: ubuntu-latest
+    container: salesforce/cli:latest-full
     steps:
       - uses: actions/checkout@v4
       - name: Test Action
