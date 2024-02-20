@@ -42,9 +42,9 @@ jobs:
       - name: Test Action
         uses: ./
         with:
-          jwt_key: ${{ secrets.SF_JWT_KEY }}
-          username: ${{ secrets.SF_USERNAME }}
-          client_id: ${{ secrets.SF_CLIENT_ID }}
+          jwt_key: ${{ secrets.SFDXSVCJWTKEY }}
+          username: ${{ secrets.SFDXSVCUSERNAME }}
+          client_id: ${{ secrets.SFDXSVCCLIENTID }}
           duration_days: ${{ github.event.inputs.duration_days }}
           preview: ${{ github.event.inputs.preview && 'true' || 'false' }}
           org_name: ${{ github.event.inputs.org_name }}
