@@ -22,7 +22,13 @@ inputs:
   scratch_def:
     description: 'Scratch org definition'
     required: false
-    default: '{}'
+    default: |
+      {
+        "orgName": "enosix-test",
+        "edition": "Developer",
+        "features": ["LightningSalesConsole", "LightningServiceConsole"],
+        "settings": { }
+      }
   api_version:
     description: 'API Version'
     required: false
