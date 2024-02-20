@@ -91,9 +91,8 @@ runs:
         ${{ inputs.api_version && format('--api-version={0}', inputs.api_version) || '' }} \
         ${{ inputs.preview == 'true' && '--release=preview' || '' }}
       
-      sf org open --url-only --target-org="$SF_ORG_NAME"
-      
-      ORG_URL=$(sf org open --url-only --target-org="$SF_ORG_NAME" 2>/dev/null)
+      ORG_RESULT=$(sf org open --url-only --target-org="$SF_ORG_NAME" --json)
+      ORG_URL=$(echo $ORG_RESULT | jq -r '.result.url')
       echo "url=$ORG_URL" >> $GITHUB_OUTPUT
     env:
       SF_ORG_DEF: ${{ inputs.scratch_def }}
