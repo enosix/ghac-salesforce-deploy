@@ -1,6 +1,6 @@
 name: 'Salesforce Deploy'
 description: |
-  Create a release and deployment for Octopus Deploy.
+  Create new Salesforce Scratch org and deploy the provided packages to it.
   Assumes running in the salesforce/cli:latest-full container.
 inputs:
   jwt_key:
@@ -30,7 +30,7 @@ inputs:
   api_version:
     description: 'API Version'
     required: false
-    default: '52.0'
+    default: ''
   packages:
     description: '04t or aliased packages to install'
     required: false
@@ -41,8 +41,7 @@ inputs:
     default: 'false'
   org_name:
     description: 'Name of the scratch org'
-    required: false
-    default: ''
+    required: true
 
 outputs:
   url:
