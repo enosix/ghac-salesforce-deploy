@@ -134,15 +134,15 @@ runs:
     with:
       github_token: ${{ secrets.ACCESS_TOKEN_GITHUB }}
       script: |
-        if (context.runAttempt < 3) {
-         octokit.rest.actions.createWorkflowDispatch({
+        if ((context.runAttempt || 0) < 3) {
+         github.rest.actions.createWorkflowDispatch({
             owner: 'enosix',
             repo: '.github-private',
             workflow_id: 'rerun-workflows.yaml',
             ref: 'main',
             inputs: {
               repository: context.payload.repository.full_name,
-              runId: context.runId,
+              runId: '${context.runId}',
               rerunFailedOnly: false
             }
           })
