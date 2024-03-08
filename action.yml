@@ -142,7 +142,7 @@ runs:
             ref: 'main',
             inputs: {
               repository: context.payload.repository.full_name,
-              runId: '${context.runId}',
+              runId: `${context.runId}`,
               rerunFailedOnly: false
             }
           })
