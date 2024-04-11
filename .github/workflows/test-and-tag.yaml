@@ -48,6 +48,7 @@ jobs:
           duration_days: ${{ github.event.inputs.duration_days }}
           preview: ${{ github.event.inputs.preview }}
           org_name: ${{ github.event.inputs.org_name }}
+          github_token: ${{ secrets.ACCESS_TOKEN_GITHUB }}
 
       - name: Create tag
         if: ${{ github.event.inputs.tag != 'none' }}
