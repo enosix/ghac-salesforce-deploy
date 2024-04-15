@@ -112,10 +112,12 @@ runs:
     shell: bash
     run: |
       echo "$SF_PACKAGES" | tr ' ' '\n' | while read pkg; do
-        echo "Installing package $pkg"
-        sf package install --wait 10 --publish-wait 10 --package="$pkg" --no-prompt \
-        ${{ inputs.api_version && format('--api-version={0}', inputs.api_version) || '' }} \
-        ${{ inputs.preview == 'true' && '--release=preview' || '' }} | jq -e '.result.Status == "SUCCESS"'
+        if [ -n "$line" ]; then
+          echo "Installing package $pkg"
+          sf package install --wait 10 --publish-wait 10 --package="$pkg" --no-prompt \
+          ${{ inputs.api_version && format('--api-version={0}', inputs.api_version) || '' }} \
+          ${{ inputs.preview == 'true' && '--release=preview' || '' }} | jq -e '.result.Status == "SUCCESS"'
+        fi
       done
 
   - name: Add Comment
