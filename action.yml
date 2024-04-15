@@ -119,6 +119,8 @@ runs:
           ${{ inputs.preview == 'true' && '--release=preview' || '' }} | jq -e '.result.Status == "SUCCESS"'
         fi
       done
+    env:
+      SF_PACKAGES: ${{ inputs.packages }}
 
   - name: Add Comment
     if: github.event_name == 'pull_request'
