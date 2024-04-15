@@ -115,6 +115,7 @@ runs:
         echo "Installing package $pkg"
         sf package install --wait=10 --publishwait=10 --package="$pkg" --target-org="$SF_ORG_NAME" --no-prompt \
         ${{ inputs.api_version && format('--api-version={0}', inputs.api_version) || '' }} \
+        ${{ inputs.preview == 'true' && '--release=preview' || '' }}
       done
     env:
       SF_ORG_NAME: ${{ inputs.org_name || github.event_name == 'pull_request' && format('{0}-pr-{1}', github.event.repository.name, github.event.pull_request.number) || format('{0}-{1}', github.event.repository.name, github.ref_name) }}
@@ -141,8 +142,9 @@ runs:
             owner: 'enosix',
             repo: context.payload.repository.name,
             run_id: `${context.runId}`
-            });
-            if (result.data.run_attempt < 3) {
+          });
+          
+          if (result.data.run_attempt < 3) {
              github.rest.actions.createWorkflowDispatch({
                 owner: 'enosix',
                 repo: '.github-private',
@@ -153,5 +155,5 @@ runs:
                   runId: `${context.runId}`,
                   rerunFailedOnly: false
                 }
-              })
-              }
+            })
+          }
