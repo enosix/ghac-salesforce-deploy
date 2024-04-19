@@ -114,7 +114,7 @@ runs:
       echo "$SF_PACKAGES" | tr ' ' '\n' | while read pkg; do
         if [ -n "$pkg" ]; then
           echo "Installing package $pkg"
-          result=$(sf package install --wait 10 --publish-wait 10 --package $pkg --no-prompt --json 2> >(tee /dev/stderr) | tee /dev/tty)
+          result=$(sf package install --wait 10 --publish-wait 10 --package $pkg --no-prompt --json 2> >(tee /dev/stderr) | tee /dev/console)
           echo "Checking package install..."
           echo "$result"
           echo "$result" | jq -e '.result.Status == "SUCCESS"'
