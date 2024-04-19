@@ -41,7 +41,7 @@ inputs:
   preview:
     description: 'Create a preview scratch org'
     required: false
-    default: 'false'
+    default: ''
   org_name:
     description: 'Name of the scratch org'
     required: true
@@ -114,9 +114,7 @@ runs:
       echo "$SF_PACKAGES" | tr ' ' '\n' | while read pkg; do
         if [ -n "$pkg" ]; then
           echo "Installing package $pkg"
-          result=$(sf package install --wait 10 --publish-wait 10 --package="$pkg" --no-prompt --json \
-              ${{ inputs.api_version && format('--api-version={0}', inputs.api_version) || '' }} \
-              ${{ inputs.preview == 'true' && '--release=preview' || '' }} )
+          result=$(sf package install --wait 10 --publish-wait 10 --package="$pkg" --no-prompt --json 2> >(tee /dev/stderr))
           echo "$result"
           echo "$result" | jq -e '.result.Status == "SUCCESS"'
         fi
