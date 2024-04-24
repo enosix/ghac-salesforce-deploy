@@ -118,8 +118,9 @@ runs:
         if [ -n "$pkg" ]; then
           echo "Installing package $pkg"
           result=$(sf package install --wait 10 --publish-wait 10 --package $pkg --no-prompt --json 2> >(tee /dev/stderr) | tee /dev/console)
-          echo "Checking package install..."
-          sf package install report --request-id $(echo "$result" | jq -r '.result.id')
+          request_id=$(echo "$result" | jq -r '.result.Id')
+          echo "Checking package install for $request_id..."
+          sf package install report --request-id $request_id
           echo "$result" | jq -e '.result.Status == "SUCCESS"'
         fi
       done
