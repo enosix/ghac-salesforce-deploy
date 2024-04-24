@@ -130,7 +130,11 @@ runs:
   - name: Post-Deploy Powershell
     if: inputs.post_deploy
     shell: pwsh
-    run: ${{ inputs.post_deploy }}
+    run: |
+        $DebugPreference="Continue"
+        $InformationPreference="Continue"
+        $WarningPreference="Continue"
+        ${{ inputs.post_deploy }}
 
   - name: Add Comment
     if: github.event_name == 'pull_request'
