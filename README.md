@@ -1,5 +1,3 @@
-Sure, here is a markdown documentation for the attached GitHub action:
-
 # Salesforce Deploy GitHub Action
 
 This GitHub action is designed to create a new Salesforce Scratch org and deploy the provided packages to it. It assumes
@@ -19,6 +17,7 @@ The action accepts the following inputs:
 - `packages`: 04t or aliased packages to install
 - `preview`: Create a preview scratch org (default: 'false')
 - `org_name`: Name of the scratch org (required)
+- `post_deploy`: A post deploy script written in Powershell
 
 ## Outputs
 
@@ -47,3 +46,5 @@ Here is an example of how to use this action in your workflow:
 
 This action will log in to Salesforce, create a new scratch org, install packages if provided, and add a comment if the
 event is a pull request. The URL of the created scratch org will be available as an output of the action.
+
+If the step fails on a non-pr acion, it will automatically attempt to retry the job three times. On PRs, a failure is not retried automatically.
