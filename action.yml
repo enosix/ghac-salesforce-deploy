@@ -42,6 +42,10 @@ inputs:
     description: 'Create a preview scratch org'
     required: false
     default: ''
+  cleanup_on_failure:
+    description: 'Cleanup org on failure'
+    required: false
+    default: 'true'
   org_name:
     description: 'Name of the scratch org'
     required: true
@@ -173,3 +177,13 @@ runs:
                 }
             })
           }
+
+  - name: Cleanup
+    if: failure() && inputs.cleanup_on_failure == 'true'
+    shell: bash
+    run: |
+      sf org delete scratch \
+        --no-prompt 
+        --target-org $SF_ORG_NAME
+    env:
+      SF_ORG_NAME: ${{ inputs.org_name || github.event_name == 'pull_request' && format('{0}-pr-{1}', github.event.repository.name, github.event.pull_request.number) || format('{0}-{1}', github.event.repository.name, github.ref_name) }}
