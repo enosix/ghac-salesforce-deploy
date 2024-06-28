@@ -38,17 +38,26 @@ jobs:
     runs-on: ubuntu-latest
     container: salesforce/cli:latest-full
     steps:
+      - name: Get Secrets
+        uses: bitwarden/sm-action@v2
+        with:
+          access_token: ${{ secrets.BW_ACCESS_TOKEN }}
+          secrets: |
+            9f7ad6b7-8324-44ab-ade1-b18501157f5c > SFDXSVCJWTKEY
+            3a6973c0-9e07-4f6b-bf08-b1850115937c > SFDXSVCUSERNAME
+            8c182d08-5dab-4216-b864-b185011568ba > SFDXSVCCLIENTID
+            cb22a6b7-669b-46d2-9c83-b1850113953a > ACCESS_TOKEN_GITHUB
       - uses: actions/checkout@v4
       - name: Test Action
         uses: ./
         with:
-          jwt_key: ${{ secrets.SFDXSVCJWTKEY }}
-          username: ${{ secrets.SFDXSVCUSERNAME }}
-          client_id: ${{ secrets.SFDXSVCCLIENTID }}
+          jwt_key: ${{ env.SFDXSVCJWTKEY }}
+          username: ${{ env.SFDXSVCUSERNAME }}
+          client_id: ${{ env.SFDXSVCCLIENTID }}
           duration_days: ${{ github.event.inputs.duration_days }}
           preview: ${{ github.event.inputs.preview }}
           org_name: ${{ github.event.inputs.org_name }}
-          github_token: ${{ secrets.ACCESS_TOKEN_GITHUB }}
+          github_token: ${{ env.ACCESS_TOKEN_GITHUB }}
 
       - name: Create tag
         if: ${{ github.event.inputs.tag != 'none' }}
