@@ -18,6 +18,7 @@ The action accepts the following inputs:
 - `preview`: Create a preview scratch org (default: 'false')
 - `org_name`: Name of the scratch org (required)
 - `post_deploy`: A post deploy script written in Powershell
+- `edition`: Edition of the scratch org (default: 'developer')
 
 ## Outputs
 

@@ -52,6 +52,10 @@ inputs:
   post_deploy:
     description: 'Post deploy powershell script'
     required: false
+  edition:
+    description: 'Edition of the scratch org'
+    required: false
+    default: 'developer'
 
 outputs:
   url:
@@ -90,7 +94,7 @@ runs:
       
       sf org create scratch \
         --target-dev-hub=devhub \
-        --edition=developer \
+        --edition="$SF_EDITION" \
         --set-default --no-track-source \
         --definition-file=sf-scratch-def.json \
         --duration-days=$SF_DURATION \
@@ -113,6 +117,7 @@ runs:
         Branch: ${{ github.ref }}
         SHA: ${{ github.sha }}
         ${{ inputs.packages }}
+      SF_EDITION: ${{ inputs.edition }}
 
   - name: Install packages
     if: inputs.packages
